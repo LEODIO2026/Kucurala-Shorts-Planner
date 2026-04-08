@@ -146,7 +146,10 @@ class TopicGenerator:
         # trend_hacker v4.0: list 형태로 반환
         kr_kws = trend_data.get("google_trends_kr", [])
 
-        genres = ["가족", "친구", "일상", "커플", "일상"]
+        genres = ["가족", "친구", "커플", "일상", "일상"] # 5개를 맞추기 위해 일상을 하나 더 두되, 순서를 조정하거나 다양화 가능
+        # 또는 무작위성을 위해 KUCURALA_GENRES에서 샘플링 가능
+        import random
+        genres = ["가족", "친구", "커플", "일상"] + [random.choice(KUCURALA_GENRES)]
         fallback = []
         for i, genre in enumerate(genres):
             signal = kr_kws[i] if i < len(kr_kws) else f"오늘의 {genre} 상황"
