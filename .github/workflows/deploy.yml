@@ -47,12 +47,14 @@ jobs:
         run: |
           # 기존 트리거가 있으면 삭제 후 재 생성 (또는 업데이트)
           gcloud scheduler jobs create http kura-daily-trigger \
-            --schedule="0 9 * * *" \
+            --schedule="0 0 * * *" \
+            --time-zone="Asia/Seoul" \
             --uri="https://${{ env.REGION }}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ env.PROJECT_ID }}/jobs/${{ env.JOB_NAME }}:run" \
             --http-method=POST \
             --oauth-service-account-email=github-actions-deployer@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
             --location=${{ env.REGION }} \
-            --description="매일 아침 09:00 에이전트 쿠라 가동" \
+            --description="매일 한국 아침 09:00 (KST) 에이전트 쿠라 가동" \
             || gcloud scheduler jobs update http kura-daily-trigger \
-            --schedule="0 9 * * *" \
+            --schedule="0 0 * * *" \
+            --time-zone="Asia/Seoul" \
             --location=${{ env.REGION }}
