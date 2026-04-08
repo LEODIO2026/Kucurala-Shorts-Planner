@@ -11,6 +11,9 @@ class Config:
     NOTION_TOKEN = os.getenv("NOTION_TOKEN", "")
     NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
     
+    # Gemini AI 설정
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    
     # 글로벌 타겟 설정 (1순위: 북미, 2순위: 글로벌)
     PRIMARY_TARGET_REGION = "USA"
     GLOBAL_VIRAL_THRESHOLD = 50_000_000  # 최소 5,000만 뷰 이상 성공 사례 분석

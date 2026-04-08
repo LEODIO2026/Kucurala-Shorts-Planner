@@ -1,2 +1,5 @@
 python-dotenv
 requests
+google-genai
+pytrends
+feedparser
