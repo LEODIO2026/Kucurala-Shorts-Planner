@@ -63,19 +63,19 @@ class ScriptArchitect:
 
     def generate_viral_skit_script(self, topic="미정", genre=None):
         """
-        [v5.0] Gemini AI가 레퍼런스를 분석하여 Kucurala 스타일로 새로운 스토리 창작
+        [v6.0] 보고서형 레이아웃용 데이터 추출
+        - 트렌드 분석 / 촬영 콘티(표 데이터) / 실행 전략 포함
         """
         available_genres = list(self.REFERENCE_DB.keys())
         selected_genre = genre if genre in available_genres else random.choice(available_genres)
 
-        # 레퍼런스 2개 무작위 선택 (영감 재료)
         refs = random.sample(self.REFERENCE_DB[selected_genre], min(2, len(self.REFERENCE_DB[selected_genre])))
         ref_text = "\n".join([
             f"- [{r['score']}] {r['name']}: 후킹 포인트는 '{r['hook']}', 바이럴 패턴은 '{r['viral_pattern']}'"
             for r in refs
         ])
 
-        prompt = f"""당신은 Kucurala 채널의 수석 콘텐츠 전략가입니다.
+        prompt = f"""당신은 Kucurala 채널의 수석 콘텐츠 전략가입니다. 대표님(USER)께 보고하는 전문적이고 정중한 톤앤매너를 유지하세요.
 
 {self.KUCURALA_STYLE}
 
@@ -86,62 +86,79 @@ class ScriptArchitect:
 아래는 실제로 수억 뷰를 기록한 레퍼런스 영상들의 바이럴 패턴입니다:
 {ref_text}
 
-위 레퍼런스의 바이럴 공식을 창의적으로 활용해서, Kucurala 스타일의 완전히 새로운 숏츠 스크립트를 작성해주세요.
-절대 레퍼런스를 그대로 복사하지 말고, 패턴만 차용해서 신선한 변형을 만들어내세요.
+[JSON 응답 스펙 (반드시 준수)]
+1. trend_analysis: 핵심 트렌드, 성공 공식, 타겟 시청층을 분석.
+2. script_table: 0~30초 분량의 숏츠를 5개 장면(Time, Visual, Audio, Remarks)으로 상세 구성.
+3. execution_strategy: 노션 데이터베이스 연동 현황 및 썸네일/편집 전략 제안.
 
-반드시 아래 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
-{{"title": "영상 제목 (한국어, 호기심을 자극하는 제목)", "hook_action": "🎬 [Scene 1: Hook - 0~3초] 시청자가 스크롤을 멈추게 하는 첫 장면 묘사 (구체적으로)", "buildup": "📌 [Scene 2: Build-up] 공감과 긴장이 쌓이는 전개 묘사 (구체적으로)", "punchline": "💥 [Scene 3: Punchline] 예상을 완전히 뒤엎는 반전 결말 (대사 포함)"}}"""
+반드시 아래 JSON 형식으로만 응답하세요:
+{{
+  "title": "[Global Common] {topic} 관련 제목",
+  "trend_analysis": {{
+    "core_trend": "현재 트렌드 핵심 설명",
+    "success_formula": "이 영상이 성공할 수밖에 없는 이유",
+    "target_audience": "주요 타겟층"
+  }},
+  "script_table": [
+    {{"time": "00~03s", "visual": "[Hook] 핵심 장면 설명", "audio": "효과음/배경음", "remarks": "의도"}},
+    {{"time": "03~10s", "visual": "장면 전환 및 빌드업", "audio": "대사/효과음", "remarks": "흐름"}},
+    {{"time": "10~18s", "visual": "긴장 고조", "audio": "사운드 변화", "remarks": "포인트"}},
+    {{"time": "18~26s", "visual": "[Twist] 반전 결말", "audio": "코믹한 사운드 전환", "remarks": "피날레"}},
+    {{"time": "26~30s", "visual": "처음 장면으로 연결되는 무한 루프", "audio": "페이드아웃/연결음", "remarks": "재시청 유도"}}
+  ],
+  "execution_strategy": {{
+    "listing_status": "노션 DB 연동 완료 보고 문구",
+    "strategy_proposal": "썸네일 및 편집 꿀팁 제안"
+  }}
+}}"""
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.1-pro-preview",
                 contents=prompt
             )
             raw = response.text.strip()
-            # JSON 파싱 (마크다운 코드블록 제거)
             if "```" in raw:
                 raw = raw.split("```")[1]
                 if raw.startswith("json"):
                     raw = raw[4:]
             data = json.loads(raw.strip())
 
+            # [v6.0] 확장된 데이터 구조 반환
             script = {
                 "title": f"[{selected_genre}] {data['title']}",
                 "genre": selected_genre,
                 "global_target": "Global Strategy (North America Focus)",
                 "reference_url": f"https://www.youtube.com/results?search_query={selected_genre}+shorts+viral",
-                "story_flow": [
-                    data["hook_action"],
-                    data["buildup"],
-                    data["punchline"]
-                ],
-                "hook_3s": {
-                    "action": data["hook_action"],
-                    "visual_text": "현실 고증 😱"
-                }
+                "trend_analysis": data["trend_analysis"],
+                "script_table": data["script_table"],
+                "execution_strategy": data["execution_strategy"]
             }
-            print(f"  ✅ AI 창작 완료: '{data['title']}'")
+            print(f"  ✅ AI 창작 완료(v6.0): '{data['title']}'")
             return script
 
         except Exception as e:
-            print(f"  ⚠️ AI 창작 실패, 레퍼런스 기반 폴백 사용: {e}")
+            print(f"  ⚠️ AI 창작 실패, 폴백 모드 가동: {e}")
             return self._fallback_script(topic, selected_genre, refs)
 
     def _fallback_script(self, topic, genre, refs):
-        """AI 실패 시 레퍼런스 기반 폴백"""
+        """AI 실패 시 기본 구조 폴백"""
         ref = refs[0]
         return {
-            "title": f"[{genre}] {topic} - {ref['name']} 변형",
+            "title": f"[{genre}] {topic} (폴백 기획)",
             "genre": genre,
             "global_target": "Global Strategy",
             "reference_url": f"https://www.youtube.com/results?search_query={genre}+viral+shorts",
-            "story_flow": [
-                f"🎬 [Scene 1: Hook] {ref['hook']} 상황에서 시작",
-                f"📌 [Scene 2: Build-up] {ref['viral_pattern']} 패턴으로 긴장 고조",
-                f"💥 [Scene 3: Punchline] {topic}에서 영감받은 예상 밖 결말"
+            "trend_analysis": {
+                "core_trend": "공감 유머", "success_formula": "반전", "target_audience": "글로벌 숏츠 사용자"
+            },
+            "script_table": [
+                {"time": "00~03s", "visual": f"{ref['hook']}로 시작", "audio": "긴장감", "remarks": "후킹"},
+                {"time": "03~30s", "visual": "공감 빌드업 및 반전 결말", "audio": "코믹 사운드", "remarks": "완성"}
             ],
-            "hook_3s": {
-                "action": f"🎬 [Hook] {ref['hook']}",
-                "visual_text": "현실 고증 😱"
+            "execution_strategy": {
+                "listing_status": "노션 DB 업데이트 완료",
+                "strategy_proposal": "과장된 표정 강조"
             }
         }
+

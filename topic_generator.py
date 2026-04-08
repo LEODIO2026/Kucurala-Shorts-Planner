@@ -108,7 +108,7 @@ class TopicGenerator:
         print("  🤖 Gemini AI 트렌드 분석 + 주제 생성 중...")
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=prompt
             )
             raw = response.text.strip()
